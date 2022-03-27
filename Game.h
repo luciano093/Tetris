@@ -2,6 +2,7 @@
 #define GAME_H
 
 #include<SDL.h>
+#include<utility>
 #include"Window.h"
 #include"Tetromino.h"
 
@@ -29,6 +30,8 @@ namespace Game {
 	extern bool canGoLeft(const Tetromino* const tetromino);
 	extern bool canGoRight(const Tetromino* const tetromino);
 
+	extern bool isThereMino(const int x, const int y);
+	extern bool testPos(std::pair<int, int> (&pos)[4]);
 	extern void drop(Tetromino* const tetromino);
 }
 

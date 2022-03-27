@@ -27,9 +27,11 @@ public:
 	const int getLeftmostX() const;
 	const int getRightmostX() const;
 
+	void rotate();
+
 private:
 	Window* const window;
-	std::array<Mino*, 4> minos;
+	std::array<Mino*, 4> minos = {nullptr, nullptr, nullptr, nullptr};
 	Type type;
 	char rotation = 1;
 };

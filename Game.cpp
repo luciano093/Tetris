@@ -31,6 +31,7 @@ void Game::eventHandler(const SDL_Keycode& keycode) {
 	switch (keycode) {
 	case SDLK_LEFT: if (canGoLeft(tetrominos.back())) tetrominos.back()->goLeft(); break;
 	case SDLK_RIGHT: if (canGoRight(tetrominos.back())) tetrominos.back()->goRight(); break;
+	case SDLK_UP: tetrominos.back()->rotate(); break;
 	case SDLK_DOWN: if (canGoDown(tetrominos.back())) tetrominos.back()->goDown(); break;
 	case SDLK_SPACE: drop(tetrominos.back()); break;
 	}
@@ -117,23 +118,53 @@ bool Game::canGoRight(const Tetromino* const tetromino){
 	return !hasReachedRightLimit(tetromino) && !hasCollidedRight(tetromino);
 }
 
+bool Game::isThereMino(const int x, const int y) {
+	for (const Tetromino* const tetromino : tetrominos) {
+		for (const Mino* const mino : tetromino->getMinos()) {
+			if (mino->getX() == x && mino->getY() == y) return true;
+		}
+	}
+
+	return false;
+}
+
+bool Game::testPos(std::pair<int, int>(&positions)[4]) {
+	for (auto tetromino = tetrominos.cbegin(); tetromino != tetrominos.cend() - 1; ++tetromino) {
+		for (const auto mino : (*tetromino)->getMinos()) {
+			for (const auto& pos : positions) {
+				if (pos.first == mino->getX() && pos.second == mino->getY()) return false;
+			}
+		}
+	}
+
+	return true;
+}
+
 void Game::drop(Tetromino* const tetromino) {
 	int targetY = tetromino->getBottomY();
-	bool canStop = false;
+	
+	std::pair<int, int> nextPos[4];
+	const int* bottomY = nullptr;
 
-	for (int nextY = targetY + window->getGridSize(); nextY <= window->getHeight(); nextY += window->getGridSize()) {
-		for (const Tetromino* const other : tetrominos) {
-			for (const Mino* mino : other->getMinos()) {
-				if (nextY == mino->getY()) {
-					canStop = true;
-					break;
-				}
+	for (int i = 0; i < 4; ++i) {
+		nextPos[i].first = tetromino->getMinos()[i]->getX();
+		nextPos[i].second = tetromino->getMinos()[i]->getY() + tetromino->getMinos()[0]->getSize();
+	}
+
+	for (const auto& pos : nextPos) {
+		if (bottomY == nullptr) bottomY = &pos.second;
+		else if (*bottomY < pos.second) bottomY = &pos.second;
+	}
+
+	while (true) {
+		if (testPos(nextPos) && *bottomY < window->getHeight()) {
+			targetY = *bottomY;
+
+			for (auto& pos : nextPos) {
+				pos.second += tetromino->getMinos()[0]->getSize();
 			}
-			if (canStop) break;
 		}
-		if (!canStop) {
-			targetY = nextY;
-		}
+		else break;
 	}
 
 	tetromino->setY(targetY);
